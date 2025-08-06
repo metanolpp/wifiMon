@@ -1,36 +1,30 @@
-const { exec } = require('child_process');
+const si = require('systeminformation');
 
 let lastStatus = null;
 
 function checkNetwork(callback) {
-  exec('netsh wlan show interfaces', (error, stdout, stderr) => {
-    if (error || stderr) {
-      callback(`❌ Erro ao consultar adaptador: ${error || stderr}`);
+  si.networkInterfaces().then(interfaces => {
+    const wifi = interfaces.find(i => i.type === 'wireless');
+
+    if (!wifi) {
+      callback("❌ Nenhum adaptador Wi-Fi detectado.");
       return;
     }
 
-    const isConnected = stdout.includes("State             : connected");
-    const isDisconnected = stdout.includes("State             : disconnected");
+    const status = wifi.operstate === 'up'
+      ? `✅ Conectado - ${wifi.iface} (${wifi.ip4})`
+      : `⚠️ Desconectado - ${wifi.iface}`;
 
-    let message;
-
-    if (isConnected) {
-      message = "✅ Adaptador conectado.";
-    } else if (isDisconnected) {
-      message = "⚠️ Adaptador desconectado.";
-    } else {
-      message = "❓ Nenhum adaptador detectado ou desativado.";
+    if (status !== lastStatus) {
+      lastStatus = status;
+      callback(status);
     }
-
-    if (message !== lastStatus) {
-      lastStatus = message;
-      callback(message);
-    }
+  }).catch(error => {
+    callback(`❌ Erro no monitoramento: ${error.message}`);
   });
 }
 
 function startMonitor(callback) {
-  // Roda a cada 5 segundos
   setInterval(() => checkNetwork(callback), 5000);
 }
 
