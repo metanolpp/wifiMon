@@ -1,0 +1,12 @@
+{
+  "name": "wifiMon",
+  "version": "1.0.0",
+  "description": "App Electron para monitorar adaptador de rede sem PowerShell",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^30.0.0"
+  }
+}
